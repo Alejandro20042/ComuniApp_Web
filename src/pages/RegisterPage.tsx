@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { register } from "../api/auth";
+import { useNavigate } from "react-router-dom";
 
 export default function RegisterPage() {
     const [nombre, setNombre] = useState("");
@@ -9,6 +10,7 @@ export default function RegisterPage() {
     const [esVoluntario, setEsVoluntario] = useState(false);
     const [esSolicitante, setEsSolicitante] = useState(false);
     const [mensaje, setMensaje] = useState("");
+    const navigate = useNavigate();
 
     const sendSubmit = async (e: FormEvent) => {
         e.preventDefault();
@@ -37,7 +39,7 @@ export default function RegisterPage() {
             });
 
             setMensaje("Registro exitoso ✅");
-            console.log(res); 
+            console.log(res);
         } catch (err) {
             console.error(err);
             setMensaje("Error al registrar usuario ❌");
@@ -115,6 +117,14 @@ export default function RegisterPage() {
                     className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
                 >
                     Registrarse
+                </button>
+
+                <button
+                    type="button"
+                    onClick={() => navigate("/")}
+                    className="w-full mt-2 bg-gray-300 text-black py-2 rounded hover:bg-gray-400"
+                >
+                    Iniciar Sesion
                 </button>
 
                 {mensaje && <p className="mt-4 text-center text-gray-700">{mensaje}</p>}
