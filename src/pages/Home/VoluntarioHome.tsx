@@ -35,6 +35,20 @@ const VoluntarioHome: React.FC = () => {
             >
               <h3 className="font-semibold text-gray-800">{s.titulo}</h3>
               <p className="text-sm text-gray-500">{s.descripcion}</p>
+              <p className="mt-1 text-sm">
+                                Estado:{" "}
+                                <span
+                                    className={
+                                        s.estado === "pendiente"
+                                            ? "text-yellow-600"
+                                            : s.estado === "en progreso"
+                                                ? "text-blue-600"
+                                                : "text-green-600"
+                                    }
+                                >
+                                    {s.estado}
+                                </span>
+                            </p>
               <p className="text-xs text-gray-400">Creada: {new Date(s.fechaCreacion).toLocaleDateString()}</p>
               <button className="mt-2 bg-blue-600 text-white text-sm px-3 py-1 rounded hover:bg-blue-700">
                 Tomar Solicitud
