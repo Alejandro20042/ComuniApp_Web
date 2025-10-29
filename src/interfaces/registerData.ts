@@ -1,6 +1,6 @@
 export interface RegisterData {
-  nombre: string;
-  email: string;
-  contraseña: string;
-  tipoUsuario: "voluntario" | "solicitante";
+  Nombre: string;
+  Email: string;
+  Contraseña: string;
+  TipoUsuario: "voluntario" | "solicitante";
 }

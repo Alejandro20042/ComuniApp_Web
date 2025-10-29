@@ -32,10 +32,10 @@ export default function RegisterPage() {
 
         try {
             const res = await register({
-                nombre,
-                contraseña,
-                tipoUsuario,
-                email,
+                Nombre: nombre,
+                Contraseña: contraseña,
+                TipoUsuario: tipoUsuario,
+                Email: email,
             });
 
             setMensaje("Registro exitoso ✅");

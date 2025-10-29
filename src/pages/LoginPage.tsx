@@ -7,12 +7,18 @@ export default function LoginPage() {
   const [contraseña, setContraseña] = useState("");
   const [mensaje, setMensaje] = useState("");
   const navigate = useNavigate();
-  
+
   const sendSubmit = async (e: FormEvent) => {
     e.preventDefault();
     try {
       const res = await login({ usuario, contraseña });
+
+      localStorage.setItem("usuario", JSON.stringify(res));
+      console.log(res)
+
+      navigate("/home");
       setMensaje(`Bienvenido ${res.nombre || usuario}`);
+
     } catch {
       setMensaje("Error: usuario o contraseña incorrectos");
     }
@@ -20,11 +26,11 @@ export default function LoginPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      
+
 
       <img src={"assets/images/people.png"} alt="Logo" className="w-32 h-32 mb-6" />
 
-   
+
       <form
         onSubmit={sendSubmit}
         className="bg-white p-8 rounded-2xl shadow-md w-96 flex flex-col items-center"
