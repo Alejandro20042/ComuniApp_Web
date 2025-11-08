@@ -41,14 +41,13 @@ const VoluntarioHome: React.FC = () => {
         estado: "en progreso",
       };
 
-      console.log("📦 Enviando al backend:", updated);
-
       await axios.put(
         `https://localhost:5282/api/solicitudes/${selectedSolicitud.id}`,
         updated,
         { headers: { "Content-Type": "application/json" } }
       );
 
+      // Actualizar el estado local
       setSolicitudes((prev) =>
         prev.map((s) =>
           s.id === selectedSolicitud.id ? { ...s, estado: "en progreso" } : s
@@ -68,90 +67,109 @@ const VoluntarioHome: React.FC = () => {
     }
   };
 
-  return (
-    <div className="w-full max-w-4xl flex flex-col gap-6 mx-auto">
-      <h2 className="text-2xl font-bold text-gray-800">Solicitudes Disponibles</h2>
+  // 🔹 Separar solicitudes por estado
+  const pendientes = solicitudes.filter((s) => s.estado === "pendiente");
+  const enProgreso = solicitudes.filter((s) => s.estado === "en progreso");
 
-      {solicitudes.length === 0 ? (
-        <p className="text-gray-500">No hay solicitudes disponibles.</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {solicitudes.map((s) => (
-            <div
-              key={s.id}
-              className="p-4 border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-md transition flex flex-col justify-between"
-            >
-              <div className="overflow-hidden">
-                <h3 className="font-semibold text-gray-800 text-lg mb-1 truncate">
+  return (
+    <div className="w-full max-w-5xl flex flex-col gap-8 mx-auto">
+      {/* 🔸 Sección de solicitudes pendientes */}
+      <section>
+        <h2 className="text-2xl font-bold text-gray-800 mb-3">
+          Solicitudes Disponibles
+        </h2>
+
+        {pendientes.length === 0 ? (
+          <p className="text-gray-500">No hay solicitudes disponibles.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {pendientes.map((s) => (
+              <div
+                key={s.id}
+                className="p-4 border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-md transition flex flex-col justify-between"
+              >
+                <div>
+                  <h3 className="font-semibold text-gray-800 text-lg mb-1">
+                    {s.titulo}
+                  </h3>
+                  <p className="text-sm text-gray-600 line-clamp-3">
+                    {s.descripcion}
+                  </p>
+                  <p className="mt-2 text-sm text-yellow-700">
+                    Estado: {s.estado}
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleTomarSolicitud(s)}
+                  className="mt-3 bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                >
+                  Tomar Solicitud
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* 🔸 Sección de solicitudes en progreso */}
+      <section>
+        <h2 className="text-2xl font-bold text-gray-800 mb-3">
+          Solicitudes en Progreso
+        </h2>
+
+        {enProgreso.length === 0 ? (
+          <p className="text-gray-500">Aún no has tomado ninguna solicitud.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {enProgreso.map((s) => (
+              <div
+                key={s.id}
+                className="p-4 border border-gray-200 rounded-xl bg-blue-50 shadow-sm hover:shadow-md transition"
+              >
+                <h3 className="font-semibold text-gray-800 text-lg mb-1">
                   {s.titulo}
                 </h3>
-                <p className="text-sm text-gray-600 break-words line-clamp-3 overflow-hidden">
+                <p className="text-sm text-gray-600 line-clamp-3">
                   {s.descripcion}
                 </p>
-                <p className="mt-2 text-sm">
-                  Estado:{" "}
-                  <span
-                    className={
-                      s.estado === "pendiente"
-                        ? "text-yellow-600"
-                        : s.estado === "en progreso"
-                          ? "text-blue-600"
-                          : "text-green-600"
-                    }
-                  >
-                    {s.estado}
-                  </span>
-                </p>
-                <p className="text-xs text-gray-400 mt-1">
-                  Creada: {new Date(s.fechaCreacion).toLocaleDateString()}
+                <p className="mt-2 text-sm text-blue-700">
+                  Estado: {s.estado}
                 </p>
               </div>
+            ))}
+          </div>
+        )}
+      </section>
 
-              <button
-                onClick={() => handleTomarSolicitud(s)}
-                className="mt-3 bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-              >
-                Tomar Solicitud
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Modal de confirmación */}
+      {/* 🔸 Modal de confirmación */}
       {showConfirmModal && selectedSolicitud && (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 flex flex-col animate-fade-in">
             <h3 className="text-2xl font-bold text-gray-800 mb-4">Aceptar Solicitud</h3>
-
-            <div className="max-h-[50vh] overflow-y-auto mb-4">
-              <p className="text-gray-700 mb-3">
-                ¿Estás seguro de que deseas aceptar esta solicitud?
+            <p className="text-gray-700 mb-3">
+              ¿Estás seguro de que deseas aceptar esta solicitud?
+            </p>
+            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+              <p className="text-sm font-semibold text-gray-800 mb-1">
+                {selectedSolicitud.titulo}
               </p>
-
-              <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                <p className="text-sm font-semibold text-gray-800 mb-1">
-                  {selectedSolicitud.titulo}
-                </p>
-                <p className="text-sm text-gray-600 whitespace-pre-wrap break-words">
-                  {selectedSolicitud.descripcion}
-                </p>
-              </div>
+              <p className="text-sm text-gray-600 whitespace-pre-wrap break-words">
+                {selectedSolicitud.descripcion}
+              </p>
             </div>
-
-            <div className="flex justify-end gap-3 pt-3 border-t border-gray-200">
+            <div className="flex justify-end gap-3 pt-4">
               <button
                 onClick={() => {
                   setShowConfirmModal(false);
                   setSelectedSolicitud(null);
                 }}
-                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleAceptarSolicitud}
-                className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
               >
                 Aceptar
               </button>
@@ -160,7 +178,7 @@ const VoluntarioHome: React.FC = () => {
         </div>
       )}
 
-      {/* Toast */}
+      {/* 🔸 Toast */}
       {toastMessage && (
         <div
           className={`fixed bottom-6 right-6 px-4 py-3 rounded-lg shadow-lg text-white transition-all duration-300 ${toastType === "success" ? "bg-green-600" : "bg-red-600"
