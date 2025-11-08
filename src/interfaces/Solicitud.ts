@@ -1,5 +1,6 @@
 export interface Solicitud {
   id: number;
+  solicitanteId: number;
   titulo: string;
   descripcion: string;
   ubicacion: string;
