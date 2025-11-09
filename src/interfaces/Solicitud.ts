@@ -6,4 +6,5 @@ export interface Solicitud {
   ubicacion: string;
   estado: "pendiente" | "en progreso" | "completada";
   fechaCreacion: string;
+  voluntarioId?: number;
 }

@@ -16,13 +16,10 @@ const HomePage: React.FC = () => {
       navigate("/");
       return;
     }
-
     setUsuario(JSON.parse(storedUser));
-    console.log(storedUser)
   }, [navigate]);
 
   if (!usuario) return null; 
-  console.log(usuario.nombre)
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
