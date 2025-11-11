@@ -17,6 +17,7 @@ const VoluntarioHome: React.FC = () => {
   const chatRef = useRef<ChatService | null>(null);
   const voluntarioId = user?.id;
 
+
   if (!chatRef.current) chatRef.current = new ChatService();
 
   const [pendientes, setPendientes] = useState<Solicitud[]>([]);
@@ -33,12 +34,12 @@ const VoluntarioHome: React.FC = () => {
 
   // Conexión a SignalR
   useEffect(() => {
+    console.log("👤 Usuario cargado desde useUser:", user);
     if (!user) return;
     const chat = chatRef.current!;
     chat.connect(user.id);
 
     chat.hubConnection?.on("ReceiveMessage", (payload: any) => {
-      console.log("📩 Mensaje recibido:", payload);
       setMessages(prev => [
         ...prev,
         { user: `Usuario ${payload.fromUserId}`, message: payload.message },
@@ -91,6 +92,7 @@ const VoluntarioHome: React.FC = () => {
       const res = await axios.get<ChatInfo>(
         `https://localhost:5282/api/mensajes/chat-info/${solicitud.id}`
       );
+      console.log("chat-info raw:", res.data);
 
       setChatInfo(res.data);
       setSelectedSolicitud(null);
@@ -110,16 +112,17 @@ const VoluntarioHome: React.FC = () => {
 
   // ✅ Enviar mensaje al solicitante
   const handleEnviarMensaje = async () => {
-
     if (!chatInfo || !user) return;
 
-    const toUserId = user.tipo_usuario === "voluntario"
-      ? chatInfo.solicitanteId
-      : chatInfo.voluntarioId;
-
-    console.log("Enviando mensaje a userId:", toUserId);
+    const tipo = user?.tipoUsuario?.toLowerCase();
+    const toUserId = tipo === "voluntario"
+      ? chatInfo?.solicitanteId
+      : chatInfo?.voluntarioId;
+    console.log("Enviando mensaje a ID:", toUserId);
     try {
-      await chatRef.current?.sendMessage(toUserId, mensaje);
+      console.log("📤 Enviando mensaje a", toUserId, ":", mensaje);
+      const toId = Number(toUserId);
+      await chatRef.current?.sendMessage(toId, mensaje);
       setMessages(prev => [...prev, { user: "Tú", message: mensaje }]);
       setMensaje("");
     } catch (err) {

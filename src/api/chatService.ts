@@ -1,13 +1,10 @@
 import * as signalR from "@microsoft/signalr";
 
-// ...existing code...
 export class ChatService {
     public hubConnection: signalR.HubConnection | null = null;
     private userId: string | number | null = null;
 
-    constructor() {
-        // no construimos la conexión aquí para poder incluir userId en la URL al conectar
-    }
+    constructor() {}
 
     // connect público, acepta userId opcional
     public async connect(userId?: string | number) {
@@ -38,7 +35,7 @@ export class ChatService {
         if (!this.hubConnection) throw new Error("Not connected");
         try {
             const fromUserId = this.userId!;
-            await this.hubConnection.invoke("SendMessage", fromUserId,toUserId, message);
+            await this.hubConnection.invoke("SendMessage", fromUserId, toUserId, message);
         } catch (err) {
             console.error("Error sending message:", err);
         }

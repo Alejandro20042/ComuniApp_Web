@@ -1,6 +1,7 @@
 export interface Usuario {
-     id: number;
+    id: number;
     nombre: string;
     tipoUsuario: "voluntario" | "solicitante";
     email: string;
 }
+

@@ -1,14 +1,9 @@
 // src/hooks/useUser.ts
 import { useState, useEffect } from "react";
-
-export interface User {
-  id: number;
-  nombre: string;
-  tipo_usuario: "voluntario" | "solicitante";
-}
+import type { Usuario } from "../interfaces/Usuario";
 
 export const useUser = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<Usuario | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("usuario");
