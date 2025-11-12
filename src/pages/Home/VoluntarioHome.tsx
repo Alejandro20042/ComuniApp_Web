@@ -8,8 +8,8 @@ import ChatBox from "../../components/chat/ChatBox";
 // Tipo para la respuesta del backend
 interface ChatInfo {
   solicitudId: number;
-  solicitanteId: number;
-  voluntarioId: number;
+  solicitanteUsuarioId: number;
+  voluntarioUsuarioId: number;
 }
 
 const VoluntarioHome: React.FC = () => {
@@ -166,7 +166,8 @@ const VoluntarioHome: React.FC = () => {
             {/* Chat embebido en la tarjeta */}
             {selectedSolicitud?.id === s.id && chatInfo && (
               <ChatBox
-                toUserId={user?.tipoUsuario === "voluntario" ? chatInfo.solicitanteId : chatInfo.voluntarioId}
+                toUserId={user?.tipoUsuario === "voluntario" ? chatInfo.solicitanteUsuarioId : chatInfo.voluntarioUsuarioId}
+                solicitudId={chatInfo.solicitudId}
                 chatService={chatRef.current}
               />
             )}

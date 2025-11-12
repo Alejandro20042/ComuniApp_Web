@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 
 interface ChatBoxProps {
   toUserId: number;
+  solicitudId: number;
   chatService: any;
 }
 
-const ChatBox: React.FC<ChatBoxProps> = ({ toUserId, chatService }) => {
+const ChatBox: React.FC<ChatBoxProps> = ({ toUserId, solicitudId, chatService }) => {
   const [mensaje, setMensaje] = useState("");
   const [mensajes, setMensajes] = useState<{ from: string; text: string }[]>([]);
 
@@ -30,7 +31,9 @@ const ChatBox: React.FC<ChatBoxProps> = ({ toUserId, chatService }) => {
   // 🚀 Enviar mensaje
   const handleEnviar = async () => {
     if (!mensaje.trim()) return;
-    await chatService.sendMessage(toUserId, mensaje);
+
+    console.log("ChatBox handleEnviar:", { toUserId, solicitudId, mensaje });
+    await chatService.sendMessage(toUserId, solicitudId, mensaje);
     setMensajes((prev) => [...prev, { from: "Tú", text: mensaje }]);
     setMensaje("");
   };

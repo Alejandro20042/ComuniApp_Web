@@ -31,11 +31,14 @@ export class ChatService {
         }
     }
 
-    public async sendMessage(toUserId: string | number, message: string) {
+    public async sendMessage(toUserId: string | number, solicitudId: string | number, message: string) {
         if (!this.hubConnection) throw new Error("Not connected");
         try {
             const fromUserId = this.userId!;
-            await this.hubConnection.invoke("SendMessage", fromUserId, toUserId, message);
+            const solId = Number(solicitudId);
+
+            console.log("📤 Enviando al Hub:", { fromUserId, toUserId, solId, message });
+            await this.hubConnection.invoke("SendMessage", fromUserId, toUserId, solId, message);
         } catch (err) {
             console.error("Error sending message:", err);
         }
