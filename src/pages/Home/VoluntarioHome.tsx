@@ -17,7 +17,6 @@ const VoluntarioHome: React.FC = () => {
   const chatRef = useRef<ChatService | null>(null);
   const voluntarioId = user?.id;
 
-
   if (!chatRef.current) chatRef.current = new ChatService();
 
   const [pendientes, setPendientes] = useState<Solicitud[]>([]);
@@ -29,25 +28,14 @@ const VoluntarioHome: React.FC = () => {
 
   // Chat
   const [chatInfo, setChatInfo] = useState<ChatInfo | null>(null);
-  const [messages, setMessages] = useState<{ user: string; message: string }[]>([]);
-  const [mensaje, setMensaje] = useState("");
 
   // Conexión a SignalR
   useEffect(() => {
-    console.log("👤 Usuario cargado desde useUser:", user);
     if (!user) return;
     const chat = chatRef.current!;
     chat.connect(user.id);
 
-    chat.hubConnection?.on("ReceiveMessage", (payload: any) => {
-      setMessages(prev => [
-        ...prev,
-        { user: `Usuario ${payload.fromUserId}`, message: payload.message },
-      ]);
-    });
-
     return () => {
-      chat.hubConnection?.off("ReceiveMessage");
       chat.disconnect();
     };
   }, [user]);
@@ -95,7 +83,6 @@ const VoluntarioHome: React.FC = () => {
       console.log("chat-info raw:", res.data);
 
       setChatInfo(res.data);
-      setSelectedSolicitud(null);
       setShowConfirmModal(false);
 
       setToastMessage("✅ Solicitud aceptada y chat listo para iniciar.");
@@ -110,23 +97,22 @@ const VoluntarioHome: React.FC = () => {
     }
   };
 
-  // ✅ Enviar mensaje al solicitante
-  const handleEnviarMensaje = async () => {
-    if (!chatInfo || !user) return;
-
-    const tipo = user?.tipoUsuario?.toLowerCase();
-    const toUserId = tipo === "voluntario"
-      ? chatInfo?.solicitanteId
-      : chatInfo?.voluntarioId;
-    console.log("Enviando mensaje a ID:", toUserId);
-    try {
-      console.log("📤 Enviando mensaje a", toUserId, ":", mensaje);
-      const toId = Number(toUserId);
-      await chatRef.current?.sendMessage(toId, mensaje);
-      setMessages(prev => [...prev, { user: "Tú", message: mensaje }]);
-      setMensaje("");
-    } catch (err) {
-      console.error("Error enviando mensaje:", err);
+  // ✅ Abrir chat dentro de la tarjeta
+  const handleAbrirChat = async (solicitud: Solicitud) => {
+    if (selectedSolicitud?.id === solicitud.id) {
+      // cerrar chat si ya estaba abierto
+      setSelectedSolicitud(null);
+      setChatInfo(null);
+    } else {
+      setSelectedSolicitud(solicitud);
+      try {
+        const res = await axios.get<ChatInfo>(
+          `https://localhost:5282/api/mensajes/chat-info/${solicitud.id}`
+        );
+        setChatInfo(res.data);
+      } catch (err) {
+        console.error("❌ Error al obtener chat-info:", err);
+      }
     }
   };
 
@@ -170,25 +156,22 @@ const VoluntarioHome: React.FC = () => {
             <p className="text-sm text-gray-600 line-clamp-3">{s.descripcion}</p>
             <p className="mt-2 text-sm text-blue-700">Estado: {s.estado}</p>
 
-            {/* 🔹 Botón para abrir el chat */}
             <button
-              onClick={() => setSelectedSolicitud(
-                selectedSolicitud?.id === s.id ? null : s)}
+              onClick={() => handleAbrirChat(s)}
               className="mt-3 bg-green-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-green-700 transition"
             >
-              Abrir Chat
+              {selectedSolicitud?.id === s.id ? "Cerrar Chat" : "Abrir Chat"}
             </button>
 
-            {/* 🔹 Mostrar el chat si esta solicitud está seleccionada */}
-            {selectedSolicitud?.id === s.id && (
+            {/* Chat embebido en la tarjeta */}
+            {selectedSolicitud?.id === s.id && chatInfo && (
               <ChatBox
-                toUserId={s.solicitanteId}
+                toUserId={user?.tipoUsuario === "voluntario" ? chatInfo.solicitanteId : chatInfo.voluntarioId}
                 chatService={chatRef.current}
               />
             )}
           </div>
         ))}
-
       </section>
 
       {/* 🔸 Modal */}
@@ -220,43 +203,6 @@ const VoluntarioHome: React.FC = () => {
                 Tomar solicitud
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* 🔸 Chat */}
-      {chatInfo && (
-        <div className="bg-white border rounded-lg p-4 mt-6 shadow-md">
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">
-            Chat con el solicitante (ID: {chatInfo.solicitanteId})
-          </h3>
-
-          <div className="h-64 overflow-y-auto border p-3 mb-3 bg-gray-50 rounded-lg">
-            {messages.length === 0 ? (
-              <p className="text-gray-400 text-sm text-center">No hay mensajes todavía</p>
-            ) : (
-              messages.map((m, i) => (
-                <p key={i} className="text-sm mb-1">
-                  <strong>{m.user}:</strong> {m.message}
-                </p>
-              ))
-            )}
-          </div>
-
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={mensaje}
-              onChange={e => setMensaje(e.target.value)}
-              placeholder="Escribe un mensaje..."
-              className="flex-1 border rounded-lg px-3 py-2"
-            />
-            <button
-              onClick={handleEnviarMensaje}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-            >
-              Enviar
-            </button>
           </div>
         </div>
       )}
