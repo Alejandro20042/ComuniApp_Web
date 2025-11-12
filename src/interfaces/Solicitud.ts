@@ -5,6 +5,15 @@ export interface Solicitud {
   descripcion: string;
   ubicacion: string;
   estado: "pendiente" | "en progreso" | "completada";
-  fechaCreacion: string;
+  fechaCreacion?: string;
   voluntarioId?: number;
 }
+
+
+/*export interface SolicitudSolicitante {
+  id: number;
+  titulo: string;
+  descripcion: string;
+  ubicacion?: string;
+  estado: string;
+}*/

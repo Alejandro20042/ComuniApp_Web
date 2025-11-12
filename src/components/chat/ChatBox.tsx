@@ -1,3 +1,4 @@
+import axios from "axios";
 import React, { useState, useEffect } from "react";
 
 interface ChatBoxProps {
@@ -13,7 +14,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ toUserId, solicitudId, chatService })
   // 📩 Escuchar mensajes entrantes
   useEffect(() => {
     if (!chatService?.hubConnection) return;
-
+    
     const handleReceiveMessage = (data: any) => {
       setMensajes((prev) => [
         ...prev,
@@ -26,7 +27,27 @@ const ChatBox: React.FC<ChatBoxProps> = ({ toUserId, solicitudId, chatService })
     return () => {
       chatService.hubConnection.off("ReceiveMessage", handleReceiveMessage);
     };
+
+
+
   }, [chatService, toUserId]);
+
+  useEffect(() => {
+  const fetchHistorial = async () => {
+    try {
+      const res = await axios.get(`https://localhost:5282/api/mensajes/historial/${solicitudId}`);
+      const data = res.data.map((m: any) => ({
+        from: m.emisorId === toUserId ? `Usuario ${m.emisorId}` : "Tú",
+        text: m.contenido
+      }));
+      setMensajes(data);
+    } catch (err) {
+      console.error("❌ Error al cargar historial:", err);
+    }
+  };
+
+  if (solicitudId) fetchHistorial();
+}, [solicitudId, toUserId]);
 
   // 🚀 Enviar mensaje
   const handleEnviar = async () => {
