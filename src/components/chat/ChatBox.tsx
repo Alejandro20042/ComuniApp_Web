@@ -10,15 +10,20 @@ interface ChatBoxProps {
 const ChatBox: React.FC<ChatBoxProps> = ({ toUserId, solicitudId, chatService }) => {
   const [mensaje, setMensaje] = useState("");
   const [mensajes, setMensajes] = useState<{ from: string; text: string }[]>([]);
+  const [userMap, setUserMap] = useState<{ [key: number]: string }>({});
 
-  // 📩 Escuchar mensajes entrantes
   useEffect(() => {
     if (!chatService?.hubConnection) return;
-    
     const handleReceiveMessage = (data: any) => {
       setMensajes((prev) => [
         ...prev,
-        { from: data.fromUserId === toUserId ? `Usuario ${data.fromUserId}` : "Tú", text: data.message },
+        {
+          from:
+            data.fromUserId === toUserId
+              ? userMap[data.fromUserId] || `Usuario ${data.fromUserId}`
+              : "Tú",
+          text: data.message,
+        },
       ]);
     };
 
@@ -27,64 +32,77 @@ const ChatBox: React.FC<ChatBoxProps> = ({ toUserId, solicitudId, chatService })
     return () => {
       chatService.hubConnection.off("ReceiveMessage", handleReceiveMessage);
     };
-
-
-
   }, [chatService, toUserId]);
 
   useEffect(() => {
-  const fetchHistorial = async () => {
-    try {
-      const res = await axios.get(`https://localhost:5282/api/mensajes/historial/${solicitudId}`);
-      const data = res.data.map((m: any) => ({
-        from: m.emisorId === toUserId ? `Usuario ${m.emisorId}` : "Tú",
-        text: m.contenido
-      }));
-      setMensajes(data);
-    } catch (err) {
-      console.error("❌ Error al cargar historial:", err);
-    }
-  };
+    const fetchUsuarios = async () => {
+      try {
+        const res = await axios.get("https://localhost:5282/api/Usuarios");
+        const usuarios = res.data;
+        const map: { [key: number]: string } = {};
+        usuarios.forEach((u: any) => {
+          map[u.id] = u.nombre;
+        });
+        setUserMap(map);
+      } catch (err) {
+        console.error("❌ Error al cargar usuarios:", err);
+      }
+    };
 
-  if (solicitudId) fetchHistorial();
-}, [solicitudId, toUserId]);
+    fetchUsuarios();
+  }, []);
+  useEffect(() => {
+    const fetchHistorial = async () => {
+      try {
+        const res = await axios.get(`https://localhost:5282/api/mensajes/historial/${solicitudId}`);
+        const data = res.data.map((m: any) => ({
+          from: m.emisorId === toUserId ? userMap[m.emisorId] || `Usuario ${m.emisorId}` : "Tú",
+          text: m.contenido
+        }));
+        setMensajes(data);
+      } catch (err) {
+        console.error("❌ Error al cargar historial:", err);
+      }
+    };
 
-  // 🚀 Enviar mensaje
+    if (solicitudId) fetchHistorial();
+  }, [solicitudId, toUserId, userMap]);
+
   const handleEnviar = async () => {
     if (!mensaje.trim()) return;
-
-    console.log("ChatBox handleEnviar:", { toUserId, solicitudId, mensaje });
     await chatService.sendMessage(toUserId, solicitudId, mensaje);
     setMensajes((prev) => [...prev, { from: "Tú", text: mensaje }]);
     setMensaje("");
   };
 
-  // 🧩 Permitir enviar con Enter
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") handleEnviar();
   };
 
   return (
     <div className="p-4 border rounded-lg bg-gray-100 mt-4">
-      {/* Mensajes */}
-      <div className="h-48 overflow-y-auto mb-3 bg-white p-3 rounded shadow-inner">
+      <div className="h-64 overflow-y-auto mb-3 bg-white p-3 rounded shadow-inner space-y-2">
         {mensajes.length === 0 ? (
           <p className="text-gray-400 text-center mt-10">No hay mensajes aún</p>
         ) : (
           mensajes.map((m, i) => (
-            <p
+            <div
               key={i}
-              className={`mb-1 ${
-                m.from === "Tú" ? "text-right text-blue-600" : "text-left text-gray-800"
-              }`}
+              className={`flex ${m.from === "Tú" ? "justify-end" : "justify-start"}`}
             >
-              <strong>{m.from}:</strong> {m.text}
-            </p>
+              <div
+                className={`inline-block max-w-[80%] px-3 py-2 rounded-lg text-sm break-words whitespace-pre-wrap ${m.from === "Tú"
+                  ? "bg-blue-600 text-white text-right"
+                  : "bg-gray-200 text-gray-800 text-left"
+                  }`}
+              >
+                <strong>{m.from}:</strong> {m.text}
+              </div>
+            </div>
           ))
         )}
       </div>
 
-      {/* Input + Botón responsivo */}
       <div className="flex flex-col sm:flex-row gap-2">
         <input
           type="text"
@@ -103,6 +121,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ toUserId, solicitudId, chatService })
       </div>
     </div>
   );
+
 };
 
 export default ChatBox;

@@ -6,8 +6,6 @@ import type { Solicitud } from "../../interfaces/Solicitud";
 import type { ChatInfo } from "../../interfaces/ChatInfo";
 import ChatBox from "../../components/chat/ChatBox";
 
-
-
 const SolicitanteHome: React.FC = () => {
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +28,6 @@ const SolicitanteHome: React.FC = () => {
   const chatRef = useRef<ChatService | null>(null);
   if (!chatRef.current) chatRef.current = new ChatService();
 
-  // 🔹 Conexión a SignalR
   useEffect(() => {
     if (!user) return;
     const chat = chatRef.current!;
@@ -38,7 +35,6 @@ const SolicitanteHome: React.FC = () => {
     return () => chat.disconnect();
   }, [user]);
 
-  // 🔹 Cargar solicitudes
   useEffect(() => {
     fetchSolicitudes();
   }, []);
@@ -55,7 +51,6 @@ const SolicitanteHome: React.FC = () => {
     }
   };
 
-  // 🔹 Obtener info del chat si está en progreso
   const fetchChatInfo = async (solicitudId: number) => {
     try {
       setChatLoading(true);
@@ -113,12 +108,14 @@ const SolicitanteHome: React.FC = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto relative">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Mis solicitudes</h2>
+    <div className="max-w-6xl mx-auto relative px-3 sm:px-4 md:px-6">
+
+      {/* Título + botón */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-800">Mis solicitudes</h2>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700"
+          className="bg-green-600 text-white w-full sm:w-auto px-5 py-2.5 rounded-full hover:bg-green-700 transition"
         >
           + Nueva
         </button>
@@ -126,9 +123,10 @@ const SolicitanteHome: React.FC = () => {
 
       {/* Modal Crear Solicitud */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center p-3 sm:p-6 z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-5 sm:p-6 max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-bold mb-4">Crear nueva solicitud</h3>
+
             <form onSubmit={handleCrearSolicitud} className="flex flex-col gap-3">
               <input
                 type="text"
@@ -153,17 +151,17 @@ const SolicitanteHome: React.FC = () => {
                 className="border rounded-lg px-3 py-2"
               />
 
-              <div className="flex justify-end gap-3 mt-4">
+              <div className="flex flex-col sm:flex-row justify-end gap-3 mt-4">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
+                  className="px-4 py-2 w-full sm:w-auto bg-gray-300 rounded-lg hover:bg-gray-400"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                  className="px-4 py-2 w-full sm:w-auto bg-green-600 text-white rounded-lg hover:bg-green-700"
                 >
                   Crear
                 </button>
@@ -173,7 +171,7 @@ const SolicitanteHome: React.FC = () => {
         </div>
       )}
 
-      {/* Lista de solicitudes */}
+      {/* Listado */}
       {loading ? (
         <p>Cargando...</p>
       ) : error ? (
@@ -188,11 +186,13 @@ const SolicitanteHome: React.FC = () => {
               className="p-4 bg-white rounded-xl shadow hover:shadow-md transition flex flex-col justify-between"
             >
               <div>
-                <h3 className="font-semibold text-gray-800 truncate">{s.titulo}</h3>
+                <h3 className="font-semibold text-gray-800 truncate text-lg">{s.titulo}</h3>
                 <p className="text-sm text-gray-500 line-clamp-3">{s.descripcion}</p>
+
                 {s.ubicacion && (
                   <p className="text-sm text-gray-500 mt-1">📍 {s.ubicacion}</p>
                 )}
+
                 <p className="text-sm mt-1">
                   Estado:{" "}
                   <span
@@ -209,14 +209,13 @@ const SolicitanteHome: React.FC = () => {
                 </p>
               </div>
 
-              {/* Botones de acción */}
               <div className="flex justify-between items-center mt-4">
                 <button
                   onClick={() => {
                     setSelectedSolicitud(s);
-                    setChatOpen(false); // 👈 abre solo detalles
+                    setChatOpen(false);
                   }}
-                  className="px-3 py-1 bg-gray-300 rounded-lg hover:bg-gray-400"
+                  className="px-3 py-1 text-sm bg-gray-300 rounded-lg hover:bg-gray-400"
                 >
                   Ver detalles
                 </button>
@@ -228,7 +227,7 @@ const SolicitanteHome: React.FC = () => {
                       fetchChatInfo(s.id);
                       setChatOpen(true);
                     }}
-                    className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                   >
                     Abrir chat
                   </button>
@@ -239,42 +238,38 @@ const SolicitanteHome: React.FC = () => {
         </div>
       )}
 
-      {/* Modal de detalles */}
+      {/* Modal Detalles */}
       {selectedSolicitud && !chatOpen && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg h-[85vh] flex flex-col">
-            <div className="flex-1 p-6 overflow-y-auto">
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                {selectedSolicitud.titulo}
-              </h3>
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center p-3 sm:p-5 z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+            <h3 className="text-2xl font-bold text-gray-800 mb-2 break-words">
+              {selectedSolicitud.titulo}
+            </h3>
 
-              <p className="text-gray-600 whitespace-pre-wrap break-words mb-3">
-                {selectedSolicitud.descripcion}
-              </p>
+            <p className="text-gray-600 whitespace-pre-wrap break-words mb-3">
+              {selectedSolicitud.descripcion}
+            </p>
 
-              {selectedSolicitud.ubicacion && (
-                <p className="text-sm text-gray-500 mb-2">
-                  📍 {selectedSolicitud.ubicacion}
-                </p>
-              )}
+            {selectedSolicitud.ubicacion && (
+              <p className="text-sm text-gray-500 mb-2">📍 {selectedSolicitud.ubicacion}</p>
+            )}
 
-              <p className="text-sm mb-2">
-                Estado:{" "}
-                <span
-                  className={
-                    selectedSolicitud.estado === "pendiente"
-                      ? "text-yellow-600"
-                      : selectedSolicitud.estado === "en progreso"
-                        ? "text-blue-600"
-                        : "text-green-600"
-                  }
-                >
-                  {selectedSolicitud.estado}
-                </span>
-              </p>
-            </div>
+            <p className="text-sm mb-4">
+              Estado:{" "}
+              <span
+                className={
+                  selectedSolicitud.estado === "pendiente"
+                    ? "text-yellow-600"
+                    : selectedSolicitud.estado === "en progreso"
+                      ? "text-blue-600"
+                      : "text-green-600"
+                }
+              >
+                {selectedSolicitud.estado}
+              </span>
+            </p>
 
-            <div className="border-t p-4 flex justify-between">
+            <div className="flex flex-col sm:flex-row justify-between gap-3 border-t pt-4">
               <button
                 onClick={() => setSelectedSolicitud(null)}
                 className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
@@ -292,60 +287,35 @@ const SolicitanteHome: React.FC = () => {
         </div>
       )}
 
-      {/* Modal de chat */}
+      {/* Modal Chat */}
       {selectedSolicitud && chatOpen && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl h-[85vh] flex flex-col">
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center p-2 sm:p-4 z-50">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl h-[92vh] flex flex-col">
 
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b bg-gradient-to-r from-blue-600 to-indigo-600 rounded-t-xl">
-              <h3 className="text-xl font-semibold text-white">
-                Chat de la solicitud: <span className="font-bold">{selectedSolicitud.titulo}</span>
+            <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b bg-gradient-to-r from-blue-600 to-indigo-600 rounded-t-xl">
+              <h3 className="text-lg sm:text-xl font-semibold text-white break-words">
+                Chat: <span className="font-bold">{selectedSolicitud.titulo}</span>
               </h3>
               <button
                 onClick={() => {
                   setChatOpen(false);
                   setSelectedSolicitud(null);
                 }}
-                className="px-3 py-1 bg-white text-gray-700 rounded-lg hover:bg-gray-200 transition"
+                className="px-3 py-1 bg-white text-gray-700 rounded-lg hover:bg-gray-200"
               >
-                ✖ Cerrar
+                ✖
               </button>
             </div>
 
-            {/* Body */}
-            <div className="flex flex-1">
-              {/* Columna izquierda: detalles */}
-              <div className="w-1/3 p-6 border-r bg-gray-50">
-                <h4 className="text-lg font-bold text-gray-800 mb-2">Detalles</h4>
-                <p className="text-gray-600 mb-3">{selectedSolicitud.descripcion}</p>
-                {selectedSolicitud.ubicacion && (
-                  <p className="text-sm text-gray-500 mb-2">📍 {selectedSolicitud.ubicacion}</p>
-                )}
-                <p className="text-sm">
-                  Estado:{" "}
-                  <span
-                    className={
-                      selectedSolicitud.estado === "pendiente"
-                        ? "text-yellow-600"
-                        : selectedSolicitud.estado === "en progreso"
-                          ? "text-blue-600"
-                          : "text-green-600"
-                    }
-                  >
-                    {selectedSolicitud.estado}
-                  </span>
-                </p>
-              </div>
+            <div className="flex flex-col md:flex-row flex-1">
 
-              {/* Columna derecha: chat */}
-              <div className="w-2/3 flex flex-col bg-gray-100">
+              <div className="w-full md:w-1/1 flex flex-col bg-gray-100">
                 {chatInfo ? (
                   chatLoading ? (
                     <p className="p-4 text-gray-500">Cargando chat...</p>
                   ) : (
                     <div className="flex flex-col flex-1">
-                      {/* ChatBox envuelto en un área con scroll */}
                       <div className="flex-1 overflow-y-auto p-4">
                         <ChatBox
                           toUserId={chatInfo.voluntarioUsuarioId}
@@ -366,11 +336,10 @@ const SolicitanteHome: React.FC = () => {
         </div>
       )}
 
-
       {/* Toast */}
       {toastMessage && (
         <div
-          className={`fixed bottom-6 right-6 px-4 py-3 rounded-lg shadow-lg text-white ${toastType === "success" ? "bg-green-600" : "bg-red-600"
+          className={`fixed bottom-6 right-6 px-4 py-3 rounded-lg shadow-lg text-white text-sm sm:text-base ${toastType === "success" ? "bg-green-600" : "bg-red-600"
             }`}
         >
           {toastMessage}
@@ -378,6 +347,7 @@ const SolicitanteHome: React.FC = () => {
       )}
     </div>
   );
+
 
 };
 

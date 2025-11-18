@@ -37,7 +37,6 @@ export class ChatService {
             const fromUserId = this.userId!;
             const solId = Number(solicitudId);
 
-            console.log("📤 Enviando al Hub:", { fromUserId, toUserId, solId, message });
             await this.hubConnection.invoke("SendMessage", fromUserId, toUserId, solId, message);
         } catch (err) {
             console.error("Error sending message:", err);
