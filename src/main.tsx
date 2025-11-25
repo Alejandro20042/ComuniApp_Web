@@ -8,3 +8,18 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 )
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", async () => {
+    try {
+      const reg = await navigator.serviceWorker.register("/sw.js");
+      console.log("✅ SW registrado", reg);
+      navigator.serviceWorker.addEventListener("message", (event) => {
+        if (event.data?.type === "SOLICITUD_SYNCED") {
+          console.log("🔔 Solicitud sincronizada:", event.data.payload);
+        }
+      });
+    } catch (err) {
+      console.error("❌ Error al registrar SW:", err);
+    }
+  });
+}

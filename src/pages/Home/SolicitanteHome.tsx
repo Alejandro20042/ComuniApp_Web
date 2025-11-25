@@ -5,6 +5,7 @@ import { useUser } from "../../hooks/useUser";
 import type { Solicitud } from "../../interfaces/Solicitud";
 import type { ChatInfo } from "../../interfaces/ChatInfo";
 import ChatBox from "../../components/chat/ChatBox";
+import { crearSolicitudOffline } from "../../service/solicitudesService";
 
 const SolicitanteHome: React.FC = () => {
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
@@ -26,6 +27,8 @@ const SolicitanteHome: React.FC = () => {
 
   const user = useUser();
   const chatRef = useRef<ChatService | null>(null);
+  const didRun = useRef(false);
+
   if (!chatRef.current) chatRef.current = new ChatService();
 
   useEffect(() => {
@@ -35,14 +38,24 @@ const SolicitanteHome: React.FC = () => {
     return () => chat.disconnect();
   }, [user]);
 
+
   useEffect(() => {
+    if (didRun.current) return;
+
+    didRun.current = true;
     fetchSolicitudes();
   }, []);
 
+
   const fetchSolicitudes = async () => {
     try {
+      console.log("Fetching solicitudes...");
+      //hacer sycrono
+      //poner validacion
       setLoading(true);
+      await getSolicitudesOffline();
       const res = await axios.get<Solicitud[]>("https://localhost:5282/api/solicitudes");
+      console.log("Solicitudes cargadas:", res.data);
       setSolicitudes(res.data);
     } catch {
       setError("Error al cargar las solicitudes");
@@ -50,6 +63,33 @@ const SolicitanteHome: React.FC = () => {
       setLoading(false);
     }
   };
+
+  function getSolicitudesOffline() {
+    const request = indexedDB.open("comuniapp-db", 1);
+    request.onsuccess = () => {
+      const db = request.result;
+      const tx = db.transaction("pending-solicitudes", "readonly");
+      const store = tx.objectStore("pending-solicitudes");
+
+      const getAll = store.getAll();
+      getAll.onsuccess = () => {
+        console.log("Solicitudes offline:", getAll.result);
+        for (const s of getAll.result) {
+          crearSolicitudOffline(s);
+          // Opcional: eliminar de IndexedDB tras intentar enviar
+          const delTx = db.transaction("pending-solicitudes", "readwrite");
+          const delStore = delTx.objectStore("pending-solicitudes");
+          delStore.delete(s.id);
+        }
+      };
+      getAll.onerror = () => {
+        console.error("Error al obtener solicitudes offline:", getAll.error);
+      };
+    };
+    request.onerror = () => {
+      console.error("Error al abrir IndexedDB:", request.error);
+    };
+  }
 
   const fetchChatInfo = async (solicitudId: number) => {
     try {
@@ -70,28 +110,51 @@ const SolicitanteHome: React.FC = () => {
     if (!storedUser) return;
 
     const usuario = JSON.parse(storedUser);
-    try {
-      const response = await axios.post("https://localhost:5282/api/solicitudes", {
-        Titulo: titulo,
-        Descripcion: descripcion,
-        Ubicacion: ubicacion,
-        Estado: "pendiente",
-        FechaCreacion: new Date().toISOString(),
-        SolicitanteId: usuario.solicitanteId,
-      });
+    const nuevaSolicitud = {
+      Titulo: titulo,
+      Descripcion: descripcion,
+      Ubicacion: ubicacion,
+      Estado: "pendiente",
+      FechaCreacion: new Date().toISOString(),
+      SolicitanteId: usuario.solicitanteId,
+    };
 
-      setSolicitudes([response.data, ...solicitudes]);
-      setShowModal(false);
-      setTitulo("");
-      setDescripcion("");
-      setUbicacion("");
+    const result = await crearSolicitudOffline(nuevaSolicitud);
+
+    if (result.sent) {
+      setSolicitudes([result.data, ...solicitudes]);
       setToastType("success");
       setToastMessage("✅ Solicitud creada correctamente.");
-    } catch {
+    } else if (result.queued) {
+      setToastType("success");
+      setToastMessage("📦 Solicitud guardada offline, se enviará al reconectar.");
+    } else {
       setToastType("error");
       setToastMessage("❌ Error al crear la solicitud.");
     }
+
+    setShowModal(false);
+    setTitulo("");
+    setDescripcion("");
+    setUbicacion("");
   };
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      const handler = (event: MessageEvent) => {
+        if (event.data?.type === "SOLICITUD_SYNCED") {
+          const nuevaSolicitud = event.data.payload;
+          setSolicitudes((prev) => [nuevaSolicitud, ...prev]);
+          setToastType("success");
+          setToastMessage("✅ Solicitud sincronizada con el servidor.");
+        }
+      };
+      navigator.serviceWorker.addEventListener("message", handler);
+      return () => {
+        navigator.serviceWorker.removeEventListener("message", handler);
+      };
+    }
+  }, []);
+
 
   const handleDeleteSolicitud = async (id: number) => {
     try {
