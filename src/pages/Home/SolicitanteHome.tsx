@@ -49,14 +49,18 @@ const SolicitanteHome: React.FC = () => {
 
   const fetchSolicitudes = async () => {
     try {
-      console.log("Fetching solicitudes...");
       //hacer sycrono
       //poner validacion
       setLoading(true);
       await getSolicitudesOffline();
       const res = await axios.get<Solicitud[]>("https://localhost:5282/api/solicitudes");
       console.log("Solicitudes cargadas:", res.data);
-      setSolicitudes(res.data);
+      // Mostrar SOLO las solicitudes en progreso (excluir finalizadas/completadas/cerradas y pendientes)
+      const onlyEnProgreso = (res.data || []).filter((s) => {
+        const estado = (s.estado ?? s.estado ?? "").toString().trim().toLowerCase();
+        return estado === "pendiente" || estado === "completada";
+      });
+      setSolicitudes(onlyEnProgreso);
     } catch {
       setError("Error al cargar las solicitudes");
     } finally {
@@ -122,7 +126,10 @@ const SolicitanteHome: React.FC = () => {
     const result = await crearSolicitudOffline(nuevaSolicitud);
 
     if (result.sent) {
-      setSolicitudes([result.data, ...solicitudes]);
+      const estadoServer = (result.data?.estado ?? result.data?.Estado ?? "").toString().trim().toLowerCase();
+      if (estadoServer === "en progreso") {
+        setSolicitudes((prev) => [result.data, ...prev]);
+      }
       setToastType("success");
       setToastMessage("✅ Solicitud creada correctamente.");
     } else if (result.queued) {
@@ -143,9 +150,14 @@ const SolicitanteHome: React.FC = () => {
       const handler = (event: MessageEvent) => {
         if (event.data?.type === "SOLICITUD_SYNCED") {
           const nuevaSolicitud = event.data.payload;
-          setSolicitudes((prev) => [nuevaSolicitud, ...prev]);
-          setToastType("success");
-          setToastMessage("✅ Solicitud sincronizada con el servidor.");
+          const estado = (nuevaSolicitud?.estado ?? nuevaSolicitud?.Estado ?? "").toString().trim().toLowerCase();
+          if (estado === "en progreso") {
+            setSolicitudes((prev) => [nuevaSolicitud, ...prev]);
+            setToastType("success");
+            setToastMessage("✅ Solicitud sincronizada con el servidor.");
+          } else {
+            console.log("Solicitud sincronizada pero no 'en progreso', no se añade a la vista:", nuevaSolicitud);
+          }
         }
       };
       navigator.serviceWorker.addEventListener("message", handler);
@@ -155,6 +167,27 @@ const SolicitanteHome: React.FC = () => {
     }
   }, []);
 
+  const handleConfirmarSolicitud = async (solicitud: Solicitud) => {
+    const storedUser = localStorage.getItem("usuario");
+    if (!storedUser) return;
+    const usuario = storedUser ? JSON.parse(storedUser) : null;
+    console.log("Confirmando solicitud:", solicitud.id, "UsuarioId:", usuario?.solicitanteId);
+    try {
+      await axios.put(`https://localhost:5282/api/solicitudes/${solicitud.id}/confirmar`, {
+        SolicitanteId: usuario?.solicitanteId,
+      });
+      setToastType("success");
+      setToastMessage("✅ Solicitud confirmada y cerrada.");
+      setTimeout(() => setToastMessage(null), 3000);
+
+      fetchSolicitudes(); // refresca lista
+    } catch (err) {
+      console.error("❌ Error al confirmar solicitud:", err);
+      setToastType("error");
+      setToastMessage("❌ Error al confirmar solicitud.");
+      setTimeout(() => setToastMessage(null), 3000);
+    }
+  };
 
   const handleDeleteSolicitud = async (id: number) => {
     try {
@@ -264,7 +297,7 @@ const SolicitanteHome: React.FC = () => {
                         ? "text-yellow-600"
                         : s.estado === "en progreso"
                           ? "text-blue-600"
-                          : "text-green-600"
+                          : "text-gray-600"
                     }
                   >
                     {s.estado}
@@ -345,6 +378,15 @@ const SolicitanteHome: React.FC = () => {
               >
                 Eliminar
               </button>
+
+              {selectedSolicitud.estado === "completada" && (
+                <button
+                  onClick={() => handleConfirmarSolicitud(selectedSolicitud)}
+                  className="px-4 py-2 bg-gradient-to-r from-purple-300 to-purple-500 text-brown-700 font-semibold rounded-lg hover:shadow-md transition"
+                >
+                  Confirmar finalización
+                </button>
+              )}
             </div>
           </div>
         </div>

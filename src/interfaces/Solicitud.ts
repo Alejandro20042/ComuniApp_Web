@@ -4,9 +4,11 @@ export interface Solicitud {
   titulo: string;
   descripcion: string;
   ubicacion: string;
-  estado: "pendiente" | "en progreso" | "completada";
-  fechaCreacion?: string;
+  estado: "pendiente" | "en progreso" | "completada" | "finalizada";
+  fechaCreacion?: string | number;
   voluntarioId?: number;
+  solicitanteNombre?: string;
+  voluntarioNombre?: string;
 }
 
 

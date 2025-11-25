@@ -3,5 +3,6 @@ export interface Usuario {
     nombre: string;
     tipoUsuario: "voluntario" | "solicitante";
     email: string;
+    voluntarioId: number | null;
 }
 

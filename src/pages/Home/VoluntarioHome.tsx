@@ -4,6 +4,7 @@ import type { Solicitud } from "../../interfaces/Solicitud";
 import { useUser } from "../../hooks/useUser";
 import { ChatService } from "../../api/chatService";
 import ChatBox from "../../components/chat/ChatBox";
+import { completarSolicitud } from "../../api/solicitudesServicesEstado";
 
 interface ChatInfo {
   solicitudId: number;
@@ -26,6 +27,7 @@ const VoluntarioHome: React.FC = () => {
   const [toastType, setToastType] = useState<"success" | "error">("success");
 
   const [chatInfo, setChatInfo] = useState<ChatInfo | null>(null);
+  
 
   useEffect(() => {
     if (!user) return;
@@ -50,7 +52,12 @@ const VoluntarioHome: React.FC = () => {
           : Promise.resolve({ data: [] }),
       ]);
       setPendientes(resPendientes.data);
-      setEnProgreso(resEnProgreso.data);
+      const excluded = new Set(["completada", "finalizada", "cerrada"]);
+      const enProgresoFiltrado = (resEnProgreso.data || []).filter((s) => {
+        const estado = (s.estado ?? "").toString().trim().toLowerCase();
+        return !excluded.has(estado);
+      });
+      setEnProgreso(enProgresoFiltrado);
     } catch (err) {
       console.error(err);
       setToastMessage("❌ Error al cargar solicitudes");
@@ -109,6 +116,24 @@ const VoluntarioHome: React.FC = () => {
     }
   };
 
+  const handleCompletarSolicitud = async (solicitud: Solicitud) => {
+    if (!solicitud || !user?.voluntarioId) return;
+    console.log("Solicitud:", solicitud.id, "UsuarioId:", user?.voluntarioId);
+    try {
+      await completarSolicitud(solicitud.id, user.voluntarioId!);
+      
+      setToastMessage("✅ Solicitud marcada como completada.");
+      setToastType("success");
+      setTimeout(() => setToastMessage(null), 3000);
+      fetchSolicitudes(); // refrescar
+    } catch (err) {
+      console.error("❌ Error al completar solicitud:", err);
+      setToastMessage("❌ Error al completar solicitud.");
+      setToastType("error");
+      setTimeout(() => setToastMessage(null), 3000);
+    }
+  };
+
   const getEstadoColor = (estado: string) => {
     switch (estado.toLowerCase()) {
       case "pendiente":
@@ -122,10 +147,10 @@ const VoluntarioHome: React.FC = () => {
     }
   };
 
-  return (
 
+  return (
     <div className="relative min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 px-4 py-6 sm:py-10">
-      <div className="w-full max-w-5xl mx-auto space-y-10">
+      <div className="max-w-54xl  space-y-10">
         {/* Solicitudes disponibles */}
         <section className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/40 p-5">
           <h2 className="text-xl font-bold text-brown-700 mb-4">Solicitudes Disponibles</h2>
@@ -219,6 +244,15 @@ const VoluntarioHome: React.FC = () => {
                       >
                         {selectedSolicitud?.id === s.id ? "Cerrar Chat" : "Abrir Chat"}
                       </button>
+
+                      {user?.tipoUsuario === "voluntario" && s.estado === "en progreso" && (
+                        <button
+                          onClick={() => handleCompletarSolicitud(s)}
+                          className="px-3 py-1.5 rounded-md bg-gradient-to-r from-blue-300 to-blue-500 text-brown-700 text-sm font-medium shadow hover:shadow-md transition"
+                        >
+                          Marcar como completada
+                        </button>
+                      )}
                     </div>
 
                     {/* chat */}
