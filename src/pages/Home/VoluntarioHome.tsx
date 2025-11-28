@@ -5,6 +5,7 @@ import { useUser } from "../../hooks/useUser";
 import { ChatService } from "../../api/chatService";
 import ChatBox from "../../components/chat/ChatBox";
 import { completarSolicitud } from "../../api/solicitudesServicesEstado";
+import api from "../../api/axios";
 
 interface ChatInfo {
   solicitudId: number;
@@ -51,9 +52,9 @@ const VoluntarioHome: React.FC = () => {
   const fetchSolicitudes = async () => {
     try {
       const [resPendientes, resEnProgreso] = await Promise.all([
-        axios.get<Solicitud[]>("https://localhost:5282/api/solicitudes/pendientes"),
+        axios.get<Solicitud[]>(`${api}/api/solicitudes/pendientes`),
         voluntarioId
-          ? axios.get<Solicitud[]>(`https://localhost:5282/api/solicitudes/voluntario/${user?.id}`)
+          ? axios.get<Solicitud[]>(`${api}/api/solicitudes/voluntario/${user?.id}`)
           : Promise.resolve({ data: [] }),
       ]);
 
@@ -93,12 +94,12 @@ const VoluntarioHome: React.FC = () => {
     if (!solicitud || !user?.id) return;
 
     try {
-      await axios.put(`https://localhost:5282/api/solicitudes/${solicitud.id}/aceptar`, {
+      await axios.put(`${api}/api/solicitudes/${solicitud.id}/aceptar`, {
         voluntarioId: user?.id,
       });
 
       const res = await axios.get<ChatInfo>(
-        `https://localhost:5282/api/mensajes/chat-info/${solicitud.id}`
+        `${api}/api/mensajes/chat-info/${solicitud.id}`
       );
       console.log("chat-info raw:", res.data);
 
@@ -125,7 +126,7 @@ const VoluntarioHome: React.FC = () => {
       setSelectedSolicitud(solicitud);
       try {
         const res = await axios.get<ChatInfo>(
-          `https://localhost:5282/api/mensajes/chat-info/${solicitud.id}`
+          `${api}/api/mensajes/chat-info/${solicitud.id}`
         );
         setChatInfo(res.data);
       } catch (err) {

@@ -1,7 +1,9 @@
+import api from "../api/axios";
+
 export async function crearSolicitudOffline(data: any) {
   try {
     // Intento online primero
-    const res = await fetch("https://localhost:5282/api/solicitudes", {
+    const res = await fetch(`${api}/api/solicitudes`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),

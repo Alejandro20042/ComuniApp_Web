@@ -1,6 +1,6 @@
 const DB_NAME = "comuniapp-db";
 const STORE_NAME = "pending-solicitudes";
-const API_BASE = "https://localhost:5282";
+const API_BASE = "https://comuniapp-api-1.onrender.com";
 
 self.addEventListener("install", (event) => {
     event.waitUntil(caches.open("comuniapp-cache").then((c) => c.addAll(["/"])));

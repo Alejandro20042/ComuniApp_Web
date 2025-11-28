@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: "https://localhost:5282/api", 
+  baseURL: "https://comuniapp-api-1.onrender.com", 
   
 });
 

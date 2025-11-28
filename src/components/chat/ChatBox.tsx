@@ -1,5 +1,6 @@
 import axios from "axios";
 import React, { useState, useEffect } from "react";
+import api from "../../api/axios";
 
 interface ChatBoxProps {
   toUserId: number;
@@ -37,7 +38,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ toUserId, solicitudId, chatService })
   useEffect(() => {
     const fetchUsuarios = async () => {
       try {
-        const res = await axios.get("https://localhost:5282/api/Usuarios");
+        const res = await axios.get(`${api}/api/Usuarios`);
         const usuarios = res.data;
         const map: { [key: number]: string } = {};
         usuarios.forEach((u: any) => {
@@ -54,7 +55,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ toUserId, solicitudId, chatService })
   useEffect(() => {
     const fetchHistorial = async () => {
       try {
-        const res = await axios.get(`https://localhost:5282/api/mensajes/historial/${solicitudId}`);
+        const res = await axios.get(`${api}/api/mensajes/historial/${solicitudId}`);
         const data = res.data.map((m: any) => ({
           from: m.emisorId === toUserId ? userMap[m.emisorId] || `Usuario ${m.emisorId}` : "Tú",
           text: m.contenido

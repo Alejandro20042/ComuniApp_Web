@@ -8,6 +8,7 @@ import ChatBox from "../../components/chat/ChatBox";
 import { crearSolicitudOffline } from "../../service/solicitudesService";
 import OfflineDetector from "../../components/ToastOffline";
 import SolicitudesLista from "../../components/SolicitudesLista";
+import api from "../../api/axios";
 
 const SolicitanteHome: React.FC = () => {
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
@@ -54,7 +55,7 @@ const SolicitanteHome: React.FC = () => {
       //poner validacion
       setLoading(true);
       await getSolicitudesOffline();
-      const res = await axios.get<Solicitud[]>("https://localhost:5282/api/solicitudes");      
+      const res = await axios.get<Solicitud[]>(`${api}/api/solicitudes`);      
       setSolicitudes(res.data);
     } catch {
       setError("Error al cargar las solicitudes");
@@ -92,7 +93,7 @@ const SolicitanteHome: React.FC = () => {
   const fetchChatInfo = async (solicitudId: number) => {
     try {
       setChatLoading(true);
-      const res = await axios.get(`https://localhost:5282/api/mensajes/chat-info/${solicitudId}`);
+      const res = await axios.get(`${api}/api/mensajes/chat-info/${solicitudId}`);
       setChatInfo(res.data);
     } catch (err) {
       console.error("Error obteniendo info del chat:", err);
@@ -186,7 +187,7 @@ const SolicitanteHome: React.FC = () => {
     if (!storedUser) return;
     const usuario = storedUser ? JSON.parse(storedUser) : null;
     try {
-      await axios.put(`https://localhost:5282/api/solicitudes/${solicitud.id}/confirmar`, {
+      await axios.put(`${api}/api/solicitudes/${solicitud.id}/confirmar`, {
         SolicitanteId: usuario?.solicitanteId,
       });
       setToastType("success");
@@ -204,7 +205,7 @@ const SolicitanteHome: React.FC = () => {
 
   const handleDeleteSolicitud = async (id: number) => {
     try {
-      await fetch(`https://localhost:5282/api/solicitudes/${id}`, { method: "DELETE" });
+      await fetch(`${api}/api/solicitudes/${id}`, { method: "DELETE" });
       setSelectedSolicitud(null);
       fetchSolicitudes();
       setToastType("success");
