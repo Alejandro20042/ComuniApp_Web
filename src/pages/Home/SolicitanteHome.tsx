@@ -206,7 +206,7 @@ const SolicitanteHome: React.FC = () => {
 
   const handleDeleteSolicitud = async (id: number) => {
     try {
-      await fetch(`https://comuniapp-api-1.onrender.com/solicitudes/${id}`, { method: "DELETE" });
+      await fetch(`https://comuniapp-api-1.onrender.com/api/solicitudes/${id}`, { method: "DELETE" });
       setSelectedSolicitud(null);
       fetchSolicitudes();
       setToastType("success");
