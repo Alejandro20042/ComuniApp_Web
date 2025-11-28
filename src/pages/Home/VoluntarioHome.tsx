@@ -147,7 +147,6 @@ const VoluntarioHome: React.FC = () => {
     }
   };
 
-
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 px-4 py-6 sm:py-10">
       <div className="max-w-54xl  space-y-10">
@@ -237,7 +236,7 @@ const VoluntarioHome: React.FC = () => {
                     </div>
 
                     {/* botón */}
-                    <div className="flex justify-end sm:justify-start">
+                    <div className="flex justify-end sm:justify-start gap-x-12">
                       <button
                         onClick={() => handleAbrirChat(s)}
                         className="px-3 py-1.5 w-full sm:w-auto rounded-md bg-gradient-to-r from-green-300 to-green-500 text-brown-700 text-sm font-medium shadow hover:shadow-md transition"
@@ -248,7 +247,7 @@ const VoluntarioHome: React.FC = () => {
                       {user?.tipoUsuario === "voluntario" && s.estado === "en progreso" && (
                         <button
                           onClick={() => handleCompletarSolicitud(s)}
-                          className="px-3 py-1.5 rounded-md bg-gradient-to-r from-blue-300 to-blue-500 text-brown-700 text-sm font-medium shadow hover:shadow-md transition"
+                          className="px-3 py-1 rounded-md bg-gradient-to-r from-blue-300 to-blue-500 text-brown-700 text-sm font-medium shadow hover:shadow-md transition"
                         >
                           Marcar como completada
                         </button>

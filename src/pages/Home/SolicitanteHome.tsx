@@ -6,6 +6,8 @@ import type { Solicitud } from "../../interfaces/Solicitud";
 import type { ChatInfo } from "../../interfaces/ChatInfo";
 import ChatBox from "../../components/chat/ChatBox";
 import { crearSolicitudOffline } from "../../service/solicitudesService";
+import OfflineDetector from "../../components/ToastOffline";
+import SolicitudesLista from "../../components/SolicitudesLista";
 
 const SolicitanteHome: React.FC = () => {
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
@@ -17,7 +19,6 @@ const SolicitanteHome: React.FC = () => {
   const [descripcion, setDescripcion] = useState("");
   const [ubicacion, setUbicacion] = useState("");
   const [showModal, setShowModal] = useState(false);
-
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastType, setToastType] = useState<"success" | "error">("success");
 
@@ -29,6 +30,7 @@ const SolicitanteHome: React.FC = () => {
   const chatRef = useRef<ChatService | null>(null);
   const didRun = useRef(false);
 
+
   if (!chatRef.current) chatRef.current = new ChatService();
 
   useEffect(() => {
@@ -37,7 +39,6 @@ const SolicitanteHome: React.FC = () => {
     chat.connect(user.id);
     return () => chat.disconnect();
   }, [user]);
-
 
   useEffect(() => {
     if (didRun.current) return;
@@ -58,7 +59,7 @@ const SolicitanteHome: React.FC = () => {
       // Mostrar SOLO las solicitudes en progreso (excluir finalizadas/completadas/cerradas y pendientes)
       const onlyEnProgreso = (res.data || []).filter((s) => {
         const estado = (s.estado ?? s.estado ?? "").toString().trim().toLowerCase();
-        return estado === "pendiente" || estado === "completada";
+        return estado === "pendiente" || estado === "completada" || estado === "finalizada";
       });
       setSolicitudes(onlyEnProgreso);
     } catch {
@@ -126,10 +127,8 @@ const SolicitanteHome: React.FC = () => {
     const result = await crearSolicitudOffline(nuevaSolicitud);
 
     if (result.sent) {
-      const estadoServer = (result.data?.estado ?? result.data?.Estado ?? "").toString().trim().toLowerCase();
-      if (estadoServer === "en progreso") {
-        setSolicitudes((prev) => [result.data, ...prev]);
-      }
+      //const estadoServer = (result.data?.estado ?? result.data?.Estado ?? "").toString().trim().toLowerCase();
+      setSolicitudes((prev) => [result.data, ...prev]);
       setToastType("success");
       setToastMessage("✅ Solicitud creada correctamente.");
     } else if (result.queued) {
@@ -145,18 +144,39 @@ const SolicitanteHome: React.FC = () => {
     setDescripcion("");
     setUbicacion("");
   };
+
   useEffect(() => {
     if ("serviceWorker" in navigator) {
       const handler = (event: MessageEvent) => {
         if (event.data?.type === "SOLICITUD_SYNCED") {
           const nuevaSolicitud = event.data.payload;
-          const estado = (nuevaSolicitud?.estado ?? nuevaSolicitud?.Estado ?? "").toString().trim().toLowerCase();
-          if (estado === "en progreso") {
-            setSolicitudes((prev) => [nuevaSolicitud, ...prev]);
+          const estado = (nuevaSolicitud?.estado ?? nuevaSolicitud?.Estado ?? "")
+            .toString()
+            .trim()
+            .toLowerCase();
+
+          if (estado === "en progreso" || estado === "pendiente") {
+            setSolicitudes((prev) => {
+              // Buscar si ya existe en la lista (por id)
+              const existe = prev.find((s) => s.id === nuevaSolicitud.id);
+              if (existe) {
+                // Reemplazar la solicitud existente
+                return prev.map((s) =>
+                  s.id === nuevaSolicitud.id ? nuevaSolicitud : s
+                );
+              } else {
+                // Insertar si no estaba
+                return [nuevaSolicitud, ...prev];
+              }
+            });
+
             setToastType("success");
             setToastMessage("✅ Solicitud sincronizada con el servidor.");
           } else {
-            console.log("Solicitud sincronizada pero no 'en progreso', no se añade a la vista:", nuevaSolicitud);
+            console.log(
+              "Solicitud sincronizada pero no 'en progreso/pendiente', no se añade:",
+              nuevaSolicitud
+            );
           }
         }
       };
@@ -166,6 +186,7 @@ const SolicitanteHome: React.FC = () => {
       };
     }
   }, []);
+
 
   const handleConfirmarSolicitud = async (solicitud: Solicitud) => {
     const storedUser = localStorage.getItem("usuario");
@@ -275,62 +296,19 @@ const SolicitanteHome: React.FC = () => {
       ) : solicitudes.length === 0 ? (
         <p className="text-gray-500">No tienes solicitudes aún.</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {solicitudes.map((s) => (
-            <div
-              key={s.id}
-              className="p-4 bg-white rounded-xl shadow hover:shadow-md transition flex flex-col justify-between"
-            >
-              <div>
-                <h3 className="font-semibold text-gray-800 truncate text-lg">{s.titulo}</h3>
-                <p className="text-sm text-gray-500 line-clamp-3">{s.descripcion}</p>
-
-                {s.ubicacion && (
-                  <p className="text-sm text-gray-500 mt-1">📍 {s.ubicacion}</p>
+        <div className="space-y-8">
+          <div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1">
+              <SolicitudesLista
+                solicitudes={solicitudes.filter(
+                  (s) => s.estado === "pendiente" || s.estado === "finalizada" || s.estado === "completada"
                 )}
-
-                <p className="text-sm mt-1">
-                  Estado:{" "}
-                  <span
-                    className={
-                      s.estado === "pendiente"
-                        ? "text-yellow-600"
-                        : s.estado === "en progreso"
-                          ? "text-blue-600"
-                          : "text-gray-600"
-                    }
-                  >
-                    {s.estado}
-                  </span>
-                </p>
-              </div>
-
-              <div className="flex justify-between items-center mt-4">
-                <button
-                  onClick={() => {
-                    setSelectedSolicitud(s);
-                    setChatOpen(false);
-                  }}
-                  className="px-3 py-1 text-sm bg-gray-300 rounded-lg hover:bg-gray-400"
-                >
-                  Ver detalles
-                </button>
-
-                {s.estado === "en progreso" && (
-                  <button
-                    onClick={() => {
-                      setSelectedSolicitud(s);
-                      fetchChatInfo(s.id);
-                      setChatOpen(true);
-                    }}
-                    className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                  >
-                    Abrir chat
-                  </button>
-                )}
-              </div>
+                setSelectedSolicitud={setSelectedSolicitud}
+                fetchChatInfo={fetchChatInfo}
+                setChatOpen={setChatOpen}
+              />
             </div>
-          ))}
+          </div>
         </div>
       )}
 
@@ -450,6 +428,7 @@ const SolicitanteHome: React.FC = () => {
           {toastMessage}
         </div>
       )}
+      <OfflineDetector />
     </div>
   );
 

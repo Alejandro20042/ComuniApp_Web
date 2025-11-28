@@ -10,12 +10,3 @@ export interface Solicitud {
   solicitanteNombre?: string;
   voluntarioNombre?: string;
 }
-
-
-/*export interface SolicitudSolicitante {
-  id: number;
-  titulo: string;
-  descripcion: string;
-  ubicacion?: string;
-  estado: string;
-}*/

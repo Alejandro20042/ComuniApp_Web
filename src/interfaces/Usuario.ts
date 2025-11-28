@@ -4,5 +4,9 @@ export interface Usuario {
     tipoUsuario: "voluntario" | "solicitante";
     email: string;
     voluntarioId: number | null;
+    bio?: string;
+    telefono?: string;
+    ubicacion?: string;
+    organizacion?: string;
 }
 
