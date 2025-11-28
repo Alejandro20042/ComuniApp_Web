@@ -68,7 +68,7 @@ export default function Sidebar() {
           >
             🏠 Inicio
           </button>
-          <button
+          {/* <button
             onClick={() => {
               navigate("/solicitudes-finalizadas");
               setOpen(false);
@@ -76,7 +76,7 @@ export default function Sidebar() {
             className="w-full text-left px-4 py-2 rounded hover:bg-gray-700"
           >
             📂 Solicitudes Finalizadas
-          </button>
+          </button> */}
           <button
             onClick={() => {
               navigate("/perfil");

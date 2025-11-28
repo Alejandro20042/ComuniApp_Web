@@ -11,7 +11,6 @@ self.addEventListener("activate", (event) => {
     event.waitUntil((async () => {
         await self.clients.claim();
         await openDB();
-        console.log("📁 IndexedDB inicializado");
     })());
 });
 
@@ -39,10 +38,8 @@ self.addEventListener("message", async (event) => {
     if (event.data?.type === "QUEUE_SOLICITUD") {
         const payload = { ...event.data.payload, sent: false, createdAt: new Date().toISOString() };
         await saveSolicitudOffline(payload);
-        console.log("📦 Solicitud guardada en IndexedDB");
         if (self.registration.sync) {
             await self.registration.sync.register("sync-solicitudes");
-            console.log("🔁 Sync solicitudes registrado");
         } else {
             event.waitUntil(enviarSolicitudesPendientes());
         }
@@ -78,7 +75,6 @@ async function enviarSolicitudesPendientes() {
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const saved = await res.json(); 
-      console.log("✅ Solicitud enviada al servidor:", saved);
 
       const tx2 = db.transaction(STORE_NAME, "readwrite");
       const store2 = tx2.objectStore(STORE_NAME);

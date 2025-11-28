@@ -54,9 +54,7 @@ const SolicitanteHome: React.FC = () => {
       //poner validacion
       setLoading(true);
       await getSolicitudesOffline();
-      const res = await axios.get<Solicitud[]>("https://localhost:5282/api/solicitudes");
-      console.log("Solicitudes cargadas:", res.data);
-      
+      const res = await axios.get<Solicitud[]>("https://localhost:5282/api/solicitudes");      
       setSolicitudes(res.data);
     } catch {
       setError("Error al cargar las solicitudes");
@@ -74,7 +72,6 @@ const SolicitanteHome: React.FC = () => {
 
       const getAll = store.getAll();
       getAll.onsuccess = () => {
-        console.log("Solicitudes offline:", getAll.result);
         for (const s of getAll.result) {
           crearSolicitudOffline(s);
           // Opcional: eliminar de IndexedDB tras intentar enviar
@@ -188,7 +185,6 @@ const SolicitanteHome: React.FC = () => {
     const storedUser = localStorage.getItem("usuario");
     if (!storedUser) return;
     const usuario = storedUser ? JSON.parse(storedUser) : null;
-    console.log("Confirmando solicitud:", solicitud.id, "UsuarioId:", usuario?.solicitanteId);
     try {
       await axios.put(`https://localhost:5282/api/solicitudes/${solicitud.id}/confirmar`, {
         SolicitanteId: usuario?.solicitanteId,
