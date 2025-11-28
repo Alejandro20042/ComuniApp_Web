@@ -55,7 +55,7 @@ const SolicitanteHome: React.FC = () => {
       //poner validacion
       setLoading(true);
       await getSolicitudesOffline();
-      const res = await axios.get<Solicitud[]>(`${api}/api/solicitudes`);      
+      const res = await axios.get<Solicitud[]>(`/solicitudes`);
       setSolicitudes(res.data);
     } catch {
       setError("Error al cargar las solicitudes");
@@ -93,7 +93,7 @@ const SolicitanteHome: React.FC = () => {
   const fetchChatInfo = async (solicitudId: number) => {
     try {
       setChatLoading(true);
-      const res = await axios.get(`${api}/api/mensajes/chat-info/${solicitudId}`);
+      const res = await api.get(`/mensajes/chat-info/${solicitudId}`);
       setChatInfo(res.data);
     } catch (err) {
       console.error("Error obteniendo info del chat:", err);
@@ -187,13 +187,14 @@ const SolicitanteHome: React.FC = () => {
     if (!storedUser) return;
     const usuario = storedUser ? JSON.parse(storedUser) : null;
     try {
-      await axios.put(`${api}/api/solicitudes/${solicitud.id}/confirmar`, {
+      await api.put(`/solicitudes/${solicitud.id}/confirmar`, {
         SolicitanteId: usuario?.solicitanteId,
       });
+
       setToastType("success");
       setToastMessage("✅ Solicitud confirmada y cerrada.");
       setTimeout(() => setToastMessage(null), 3000);
-      fetchSolicitudes(); 
+      fetchSolicitudes();
       setSelectedSolicitud(null);
     } catch (err) {
       console.error("❌ Error al confirmar solicitud:", err);
@@ -205,7 +206,7 @@ const SolicitanteHome: React.FC = () => {
 
   const handleDeleteSolicitud = async (id: number) => {
     try {
-      await fetch(`${api}/api/solicitudes/${id}`, { method: "DELETE" });
+      await fetch(`https://comuniapp-api-1.onrender.com/solicitudes/${id}`, { method: "DELETE" });
       setSelectedSolicitud(null);
       fetchSolicitudes();
       setToastType("success");
