@@ -55,7 +55,7 @@ const SolicitanteHome: React.FC = () => {
       //poner validacion
       setLoading(true);
       await getSolicitudesOffline();
-      const res = await axios.get<Solicitud[]>(`/api/solicitudes`);
+      const res = await axios.get<Solicitud[]>(`/solicitudes`);
       setSolicitudes(res.data);
     } catch {
       setError("Error al cargar las solicitudes");
