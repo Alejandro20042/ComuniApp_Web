@@ -5,7 +5,6 @@ import { useUser } from "../../hooks/useUser";
 import { ChatService } from "../../api/chatService";
 import ChatBox from "../../components/chat/ChatBox";
 import { completarSolicitud } from "../../api/solicitudesServicesEstado";
-import api from "../../api/axios";
 
 interface ChatInfo {
   solicitudId: number;
