@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import axios from "axios";
 import type { Solicitud } from "../../interfaces/Solicitud";
 import { useUser } from "../../hooks/useUser";
 import { ChatService } from "../../api/chatService";
