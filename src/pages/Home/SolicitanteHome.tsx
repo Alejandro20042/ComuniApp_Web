@@ -368,8 +368,8 @@ const SolicitanteHome: React.FC = () => {
 
       {/* Modal Chat */}
       {selectedSolicitud && chatOpen && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center p-2 sm:p-4 z-50">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl h-[92vh] flex flex-col">
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center p-2 sm:p-4 z-50 ">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl flex-col ">
 
             {/* Header */}
             <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b bg-gradient-to-r from-blue-600 to-indigo-600 rounded-t-xl">
@@ -387,15 +387,14 @@ const SolicitanteHome: React.FC = () => {
               </button>
             </div>
 
-            <div className="flex flex-col md:flex-row flex-1">
-
-              <div className=" flex flex-col bg-gray-100">
+            <div className="flex flex-col">
+              <div className=" flex flex-col bg-gray-100 ">
                 {chatInfo ? (
                   chatLoading ? (
                     <p className="p-4 text-gray-500">Cargando chat...</p>
                   ) : (
-                    <div className="flex flex-col flex-1">
-                      <div className="flex-1 overflow-y-auto p-4">
+                    <div className="flex flex-col flex-1  ">
+                      <div className="flex-1 overflow-y-auto p-4 ">
                         <ChatBox
                           toUserId={chatInfo.voluntarioUsuarioId}
                           solicitudId={chatInfo.solicitudId}
