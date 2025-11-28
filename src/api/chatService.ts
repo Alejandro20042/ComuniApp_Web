@@ -1,4 +1,5 @@
 import * as signalR from "@microsoft/signalr";
+import api from "./axios";
 
 export class ChatService {
     public hubConnection: signalR.HubConnection | null = null;
@@ -16,7 +17,7 @@ export class ChatService {
 
         // build connection including the userId in query string
         this.hubConnection = new signalR.HubConnectionBuilder()
-            .withUrl(`https://localhost:5282/chatHub?userId=${encodeURIComponent(this.userId)}`)
+            .withUrl(`${api}/chatHub?userId=${encodeURIComponent(this.userId)}`)
             .withAutomaticReconnect()
             .build();
 
