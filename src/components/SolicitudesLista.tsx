@@ -14,17 +14,19 @@ const SolicitudesLista: React.FC<Props> = ({
     fetchChatInfo,
     setChatOpen,
 }) => {
-    const [tab, setTab] = useState<"pendientes" | "finalizadas" | "completada">("pendientes");
+    const [tab, setTab] = useState<"pendientes" | "finalizadas" | "completada" | "en progreso">("pendientes");
     const [page, setPage] = useState(1);
 
     const perPage = 6;
 
     const filtradas =
         tab === "pendientes"
-            ? solicitudes.filter((s) => s.estado === "pendiente" || s.estado === "en progreso")
-            : tab === "completada"
-                ? solicitudes.filter((s) => s.estado === "completada")
-                : solicitudes.filter((s) => s.estado === "finalizada");
+            ? solicitudes.filter((s) => s.estado?.toLowerCase().trim() === "pendiente")
+            : tab === "en progreso"
+                ? solicitudes.filter((s) => s.estado?.toLowerCase().trim() === "en progreso")
+                : tab === "completada"
+                    ? solicitudes.filter((s) => s.estado?.toLowerCase().trim() === "completada")
+                    : solicitudes.filter((s) => s.estado?.toLowerCase().trim() === "finalizada");
 
     const totalPages = Math.ceil(filtradas.length / perPage);
 
@@ -35,30 +37,42 @@ const SolicitudesLista: React.FC<Props> = ({
 
     return (
         <div className="flex flex-col gap-8 w-full max-w-7xl mx-auto px-4">
-
-            {/* -------------------- TABS -------------------- */}
             <div className="flex justify-center">
-                <div className="flex bg-gray-200 rounded-full p-1 shadow-inner">
+                <div className="flex flex-wrap gap-2 bg-gray-200 rounded-full p-2 shadow-inner w-full sm:w-auto justify-center">
                     <button
                         onClick={() => {
                             setTab("pendientes");
                             setPage(1);
                         }}
-                        className={`px-5 sm:px-6 py-2 rounded-full font-medium transition ${tab === "pendientes"
-                            ? "bg-white shadow text-blue-600"
-                            : "text-gray-600 hover:text-gray-800"
+                        className={`flex-1 sm:flex-none px-3 sm:px-5 py-2 rounded-full font-medium transition text-sm sm:text-base ${tab === "pendientes"
+                                ? "bg-white shadow text-blue-600"
+                                : "text-gray-600 hover:text-gray-800"
                             }`}
                     >
                         Pendientes
                     </button>
+
+                    <button
+                        onClick={() => {
+                            setTab("en progreso");
+                            setPage(1);
+                        }}
+                        className={`flex-1 sm:flex-none px-3 sm:px-5 py-2 rounded-full font-medium transition text-sm sm:text-base ${tab === "en progreso"
+                                ? "bg-white shadow text-blue-600"
+                                : "text-gray-600 hover:text-gray-800"
+                            }`}
+                    >
+                        En Progreso
+                    </button>
+
                     <button
                         onClick={() => {
                             setTab("completada");
                             setPage(1);
                         }}
-                        className={`px-5 sm:px-6 py-2 rounded-full font-medium transition ${tab === "completada"
-                            ? "bg-white shadow text-blue-600"
-                            : "text-gray-600 hover:text-green-800"
+                        className={`flex-1 sm:flex-none px-3 sm:px-5 py-2 rounded-full font-medium transition text-sm sm:text-base ${tab === "completada"
+                                ? "bg-white shadow text-blue-600"
+                                : "text-gray-600 hover:text-green-800"
                             }`}
                     >
                         Completadas
@@ -69,18 +83,17 @@ const SolicitudesLista: React.FC<Props> = ({
                             setTab("finalizadas");
                             setPage(1);
                         }}
-                        className={`px-5 sm:px-6 py-2 rounded-full font-medium transition ${tab === "finalizadas"
-                            ? "bg-white shadow text-blue-600"
-                            : "text-gray-600 hover:text-gray-800"
+                        className={`flex-1 sm:flex-none px-3 sm:px-5 py-2 rounded-full font-medium transition text-sm sm:text-base ${tab === "finalizadas"
+                                ? "bg-white shadow text-blue-600"
+                                : "text-gray-600 hover:text-gray-800"
                             }`}
                     >
                         Finalizadas
                     </button>
-
                 </div>
             </div>
 
-            {/* -------------------- LISTA -------------------- */}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
                 {paginated.map((s) => (
                     <div
@@ -150,7 +163,6 @@ const SolicitudesLista: React.FC<Props> = ({
                 ))}
             </div>
 
-            {/* -------------------- PAGINACIÓN -------------------- */}
             {totalPages > 1 && (
                 <div className="flex gap-2 justify-center mt-4">
                     {Array.from({ length: totalPages }).map((_, i) => (

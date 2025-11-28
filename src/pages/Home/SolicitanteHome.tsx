@@ -56,12 +56,8 @@ const SolicitanteHome: React.FC = () => {
       await getSolicitudesOffline();
       const res = await axios.get<Solicitud[]>("https://localhost:5282/api/solicitudes");
       console.log("Solicitudes cargadas:", res.data);
-      // Mostrar SOLO las solicitudes en progreso (excluir finalizadas/completadas/cerradas y pendientes)
-      const onlyEnProgreso = (res.data || []).filter((s) => {
-        const estado = (s.estado ?? s.estado ?? "").toString().trim().toLowerCase();
-        return estado === "pendiente" || estado === "completada" || estado === "finalizada";
-      });
-      setSolicitudes(onlyEnProgreso);
+      
+      setSolicitudes(res.data);
     } catch {
       setError("Error al cargar las solicitudes");
     } finally {
@@ -200,8 +196,8 @@ const SolicitanteHome: React.FC = () => {
       setToastType("success");
       setToastMessage("✅ Solicitud confirmada y cerrada.");
       setTimeout(() => setToastMessage(null), 3000);
-
-      fetchSolicitudes(); // refresca lista
+      fetchSolicitudes(); 
+      setSelectedSolicitud(null);
     } catch (err) {
       console.error("❌ Error al confirmar solicitud:", err);
       setToastType("error");
@@ -301,7 +297,7 @@ const SolicitanteHome: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1">
               <SolicitudesLista
                 solicitudes={solicitudes.filter(
-                  (s) => s.estado === "pendiente" || s.estado === "finalizada" || s.estado === "completada"
+                  (s) => s.estado === "pendiente" || s.estado === "finalizada" || s.estado === "completada" || s.estado === "en progreso"
                 )}
                 setSelectedSolicitud={setSelectedSolicitud}
                 fetchChatInfo={fetchChatInfo}
@@ -393,7 +389,7 @@ const SolicitanteHome: React.FC = () => {
 
             <div className="flex flex-col md:flex-row flex-1">
 
-              <div className="w-full md:w-1/1 flex flex-col bg-gray-100">
+              <div className=" flex flex-col bg-gray-100">
                 {chatInfo ? (
                   chatLoading ? (
                     <p className="p-4 text-gray-500">Cargando chat...</p>

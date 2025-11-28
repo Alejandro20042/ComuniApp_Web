@@ -80,7 +80,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ toUserId, solicitudId, chatService })
   };
 
   return (
-    <div className="w-full md:w-[700px] p-3 border rounded-lg bg-gray-100 mt-4">
+    <div className="w-full md:w-[1070px] lg:w-[1070px] p-3 border rounded-lg bg-gray-100 mt-4">
       <div className="h-66 overflow-y-auto mb-5 bg-white p-3 rounded shadow-inner space-y-2">
         {mensajes.length === 0 ? (
           <p className="text-gray-400 text-center mt-10">No hay mensajes aún</p>
