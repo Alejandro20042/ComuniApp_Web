@@ -64,6 +64,16 @@ const SolicitanteHome: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+        if (toastMessage) {
+            const timer = setTimeout(() => {
+                setToastMessage(null);
+                setToastType("success");
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [toastMessage]);
+
   function getSolicitudesOffline() {
     const request = indexedDB.open("comuniapp-db", 1);
     request.onsuccess = () => {
@@ -128,6 +138,7 @@ const SolicitanteHome: React.FC = () => {
     } else if (result.queued) {
       setToastType("success");
       setToastMessage("📦 Solicitud guardada offline, se enviará al reconectar.");
+      
     } else {
       setToastType("error");
       setToastMessage("❌ Error al crear la solicitud.");
