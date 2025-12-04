@@ -7,7 +7,7 @@ const CACHE_NAME = "comuniapp-cache";
 
 self.addEventListener("install", (event) => {
     // ✅ CORRECTO: Pre-cachea la ruta raíz y la ruta /solicitud
-    event.waitUntil(caches.open(CACHE_NAME).then((c) => c.addAll(["/", "/solicitud"])));
+    event.waitUntil(caches.open(CACHE_NAME).then((c) => c.addAll(["/", "/home"])));
     self.skipWaiting();
 });
 
