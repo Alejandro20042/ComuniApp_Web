@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import SolicitanteHome from "./Home/SolicitanteHome";
 import VoluntarioHome from "./Home/VoluntarioHome";
 import type { Usuario } from "../interfaces/Usuario";
+import ThemeToggleButton from "../components/ThemeToggleButton";
 
 const HomePage: React.FC = () => {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
@@ -25,6 +26,7 @@ const HomePage: React.FC = () => {
         <h1 className="text-2xl font-bold text-gray-800">
           👋 Hola, <span className="text-green-600">{usuario.nombre}</span>
         </h1>
+        <ThemeToggleButton />
       </header>
 
       <main className="w-full max-w-6xl mx-auto">
